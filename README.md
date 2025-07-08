@@ -50,7 +50,6 @@ Blog(w.AI)_Project2/
 - PostgreSQL
 - Bootstrap 5
 - OpenAI API
-- dotenv
 
 ## wbs
 <img width="1107" alt="스크린샷 2025-07-04 오후 4 29 59" src="https://github.com/user-attachments/assets/cafec496-b629-41b6-87eb-4b5af4260e5f" />
