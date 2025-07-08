@@ -1,0 +1,32 @@
+<!-- templates/account/signup.html -->
+{% extends "blog/base.html" %}
+{% block title %}회원가입{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <h2 class="mb-4">회원가입</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="mb-3">
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.errors %}
+            <div class="text-danger small">{{ field.errors|striptags }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      <div class="alert alert-secondary mt-2" style="font-size: 0.9em;">
+            <strong>비밀번호 조건:</strong>
+            <ul class="mb-0 mt-1">
+                <li>8자 이상</li>
+                <li>숫자 또는 특수문자 포함</li>
+                <li>너무 쉬운 비밀번호 사용 불가</li>
+                <li>아이디와 비슷한 비밀번호 금지</li>
+            </ul>
+            </div>
+      <button type="submit" class="btn btn-primary w-100">가입하기</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

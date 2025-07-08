@@ -1,0 +1,110 @@
+<!-- templates/blog/post_detail.html -->
+{% extends 'blog/base.html' %} {% block title %} {{ posts.title }} - AI 블로그
+{% endblock %} {% block content %}
+<article class="post-detail">
+  <header>
+    <h1>{{ posts.title }}</h1>
+    <div class="post-meta">
+      <span>작성자: {{ posts.user.username }}</span>
+      <span> | 작성일: {{ posts.created_at|date:"Y-m-d H:i" }}</span>
+      {% if posts.updated_at != posts.created_at %}
+      <span> | 수정일: {{ posts.updated_at|date:"Y-m-d H:i" }}</span>
+      {% endif %}
+      <span class="status-badge status-{{ posts.status }}"
+        >{{ posts.get_status_display }}</span
+      >
+    </div>
+  </header>
+
+  <div class="post-content">{{ posts.content|linebreaks }}</div>
+
+  <!-- 첨부파일 목록 -->
+  {% if posts.attachments.all %}
+  <div class="attachments">
+    <h4>첨부파일</h4>
+    {% for attachment in posts.attachments.all %}
+    <div>
+      <a href="{{ attachment.file.url }}" download
+        >{{ attachment.file.name }}</a
+      >
+      <span class="posts-meta"
+        >({{ attachment.uploaded_at|date:"Y-m-d H:i" }})</span
+      >
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- 좋아요 -->
+  <form
+    action="{% url 'toggle_like' posts.id %}"
+    method="post"
+    style="display: inline"
+  >
+    {% csrf_token %} {% if user.is_authenticated %}
+    <button
+      type="submit"
+      style="background: none; border: none; cursor: pointer"
+    >
+      {% if is_liked %}
+      <i
+        class="fas fa-heart heart-icon"
+        style="color: red; font-size: 24px"
+      ></i>
+      {% else %}
+      <i
+        class="far fa-heart heart-icon"
+        style="color: gray; font-size: 24px"
+      ></i>
+      {% endif %}
+    </button>
+    {{ posts.like.count }} {% else %}
+    <a href="{% url 'login' %}" title="로그인 후 좋아요">
+      <i class="far fa-heart" style="color: gray; font-size: 24px"></i>
+    </a>
+    {% endif %}
+  </form>
+
+  <!-- 게시글 작성자만 수정/삭제 가능 -->
+  {% if user == posts.user %}
+  <div style="margin-top: 30px">
+    <a href="{% url 'post_edit' posts.pk %}" class="btn">수정</a>
+    <a
+      href="{% url 'post_delete' posts.pk %}"
+      class="btn btn-danger"
+      onclick="return confirm('정말로 삭제하시겠습니까?')"
+      >삭제</a
+    >
+  </div>
+  {% endif %}
+</article>
+
+<!-- 댓글 섹션 -->
+<div class="comment-section">
+  <h3>댓글 ({{ posts.comments.count }})</h3>
+
+  <!-- 댓글 목록 -->
+  {% for comment in posts.comments.all %}
+  <div class="comment">
+    <p>
+      <strong>{{ comment.user.username }}</strong> -
+      {{comment.created_at|date:"Y-m-d H:i" }}
+    </p>
+    <p>{{ comment.content|linebreaks }}</p>
+  </div>
+  {% empty %}
+  <p>첫 번째 댓글을 남겨보세요!</p>
+  {% endfor %} {% if user.is_authenticated %}
+  <form method="post" action="{% url 'post_detail' posts.pk %}">
+    {% csrf_token %} {{ comment_form.as_p }}
+    <button type="submit" class="btn">댓글 작성</button>
+  </form>
+  {% else %}
+  <p><a href="{% url 'login' %}">로그인</a> 후 댓글을 작성할 수 있습니다.</p>
+  {% endif %}
+</div>
+
+<div style="margin-top: 30px">
+  <a href="{% url 'post_list' %}" class="btn">목록으로</a>
+</div>
+{% endblock %}

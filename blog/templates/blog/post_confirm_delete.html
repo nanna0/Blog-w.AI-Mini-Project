@@ -1,0 +1,49 @@
+<!-- templates/blog/post_confirm_delete.html -->
+{% extends 'blog/base.html' %} 
+    {% block title %}게시글 삭제 - AI 블로그
+{%endblock %} 
+
+{% block content %}
+<div class="post-delete">
+  <h2>게시글 삭제</h2>
+
+  <div
+    style="
+      background-color: #f8d7da;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    "
+  >
+    <strong>주의:</strong> 다음 게시글을 삭제하시겠습니까?
+  </div>
+
+  <div
+    class="post-preview"
+    style="
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    "
+  >
+    <h3>{{ posts.title }}</h3>
+    <div class="post-meta">
+      작성자: {{ posts.user.username }} | 작성일: {{
+      posts.created_at|date:"Y-m-d H:i" }}
+    </div>
+    <div style="margin-top: 10px">{{ posts.content|truncatewords:30 }}</div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">삭제하기</button>
+    <a
+      href="{% url 'post_detail' posts.pk %}"
+      class="btn"
+      style="background-color: #6c757d"
+      >취소</a
+    >
+  </form>
+</div>
+{% endblock %}

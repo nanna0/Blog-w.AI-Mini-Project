@@ -1,0 +1,173 @@
+<!-- templates/blog/post_form.html -->
+ 
+{% extends 'blog/base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        게시글 수정 - AI 블로그
+    {% else %}
+        새 게시글 작성 - AI 블로그
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="post-form">
+    <h2>
+        {% if form.instance.pk %}
+            게시글 수정
+        {% else %}
+            새 게시글 작성
+        {% endif %}
+    </h2>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- 폼 에러 표시 -->
+        {% if form.errors %}
+            <div style="color: red; margin-bottom: 20px;">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <p>{{ field }}: {{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label for="{{ form.title.id_for_label }}">제목</label>
+            {{ form.title }}
+        </div>
+    
+            <form method="post">
+                <div class="form-group">
+                    <label for="{{ form.content.id_for_label }}">내용</label>
+                    {{ form.content }}
+                    <button type="button" id="spellcheck-button" class="btn btn-secondary mt-2">
+                        AI 맞춤법 검사
+                    </button>
+                    <div id="spellcheck-status" class="mt-2 text-success" style="display: none;">
+                        맞춤법이 교정되었습니다 ✅
+                        </div>
+                </div>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                    const button = document.getElementById("spellcheck-button");
+                    const textarea = document.getElementById("id_content");
+                    const status = document.getElementById("spellcheck-status");
+
+                    button.addEventListener("click", async function () {
+                        const text = textarea.value;
+
+                        if (!text.trim()) {
+                        alert("내용을 입력해 주세요.");
+                        return;
+                        }
+
+                        // 버튼 비활성화 & 로딩 표시
+                        button.disabled = true;
+                        button.textContent = "검사 중...";
+
+                        try {
+                        const response = await fetch("/spellcheck/", {
+                            method: "POST",
+                            headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCookie("csrftoken"),
+                            },
+                            body: JSON.stringify({ text: text }),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error("서버 오류");
+                        }
+
+                        const data = await response.json();
+
+                        if (data.corrected_text) {
+                            textarea.value = data.corrected_text;
+                            status.style.display = "block";
+                            setTimeout(() => status.style.display = "none", 3000);
+                        } else {
+                            alert("맞춤법 수정 결과를 불러오지 못했습니다.");
+                        }
+                        } catch (error) {
+                        alert("맞춤법 검사 중 오류가 발생했습니다.");
+                        console.error(error);
+                        } finally {
+                        button.disabled = false;
+                        button.textContent = "맞춤법 검사";
+                        }
+                    });
+
+                    // CSRF 토큰을 쿠키에서 추출
+                    function getCookie(name) {
+                        const cookies = document.cookie.split(';');
+                        for (let c of cookies) {
+                        const [key, value] = c.trim().split('=');
+                        if (key === name) return decodeURIComponent(value);
+                        }
+                        return null;
+                    }
+                    });
+                    </script>
+            </form>
+      
+        
+        <div class="form-group">
+            <label for="{{ form.status.id_for_label }}">상태</label>
+            {{ form.status }}
+        </div>
+        
+        <!-- 첨부파일 (새 글 작성시에만) -->
+        {% if not form.instance.pk %}
+        <div class="form-group">
+            <label for="attachments">첨부파일</label>
+            <input type="file" name="attachments" id="attachments" multiple>
+            <small style="color: #666;">여러 파일을 선택할 수 있습니다.</small>
+        </div>
+        {% endif %}
+        
+        
+ 
+
+    <!-- 기존 첨부파일 목록 (수정시) -->
+    {% if form.instance.pk and form.instance.attachments.all %}
+        
+    <div style="margin-top: 30px;">
+        <h4>기존 첨부파일</h4>
+        {% for attachment in form.instance.attachments.all %}
+        <div style="margin-bottom: 10px;">
+            <label>
+                <input type="checkbox" name="delete_attachments" value="{{ attachment.id }}">
+                삭제
+            </label>
+            <a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a>
+            <span class="post-meta">({{ attachment.uploaded_at|date:"Y-m-d H:i" }})</span>
+            <!-- 첨부파일 삭제 버튼 추가 가능 -->
+             
+        </div>
+        {% endfor %}
+        <!-- 첨부파일 추가 -->
+            <div class="form-group">
+            <label for="attachments">첨부파일 추가</label>
+            <input type="file" name="attachments" id="attachments" multiple>
+            </div>
+    </div>
+    {% endif %}
+</div>
+
+<div style="margin-top: 30px;">
+            <button type="submit" class="btn">
+                {% if form.instance.pk %}
+                    수정하기
+                {% else %}
+                    작성하기
+                {% endif %}
+            </button>
+            <a href="{% url 'post_list' %}" class="btn" style="background-color: #6c757d;">취소</a>
+</div>
+    </form>
+
+
+{% endblock %}
